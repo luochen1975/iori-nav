@@ -9,12 +9,15 @@
     'layout_hide_subtitle',
     'home_hide_stats',
     'home_hide_hitokoto',
-    'home_hide_github',
     'home_hide_admin',
     'home_search_engine_enabled',
     'home_remember_last_category',
     'layout_enable_frosted_glass',
     'layout_enable_bg_blur',
+    'mobile_layout_hide_desc',
+    'mobile_layout_hide_links',
+    'mobile_layout_hide_category',
+    'mobile_layout_enable_frosted_glass',
   ];
 
   const TRUTHY_STRING_FIELDS = [
@@ -35,7 +38,10 @@
     'home_hitokoto_font',
     'home_site_name',
     'home_site_description',
+    'home_footer_text',
     'home_default_category',
+    'home_category_position',
+    'home_category_flow',
     'layout_frosted_glass_intensity',
     'layout_grid_cols',
     'layout_custom_wallpaper',
@@ -44,6 +50,7 @@
     'wallpaper_source',
     'wallpaper_cid_360',
     'layout_card_style',
+    'layout_card_animation',
     'layout_card_border_radius',
     'card_title_font',
     'card_title_size',
@@ -51,6 +58,17 @@
     'card_desc_font',
     'card_desc_size',
     'card_desc_color',
+    'mobile_layout_frosted_glass_intensity',
+    'mobile_layout_grid_cols',
+    'mobile_layout_card_style',
+    'mobile_layout_card_animation',
+    'mobile_layout_card_border_radius',
+    'mobile_card_title_font',
+    'mobile_card_title_size',
+    'mobile_card_title_color',
+    'mobile_card_desc_font',
+    'mobile_card_desc_size',
+    'mobile_card_desc_color',
   ];
 
   function createDefaultSettings() {
@@ -75,7 +93,6 @@
       home_hide_hitokoto: false,
       home_hitokoto_size: '',
       home_hitokoto_color: '',
-      home_hide_github: false,
       home_hide_admin: false,
       home_search_engine_enabled: false,
       home_default_category: '',
@@ -86,6 +103,9 @@
       home_hitokoto_font: '',
       home_site_name: '',
       home_site_description: '',
+      home_footer_text: '',
+      home_category_position: 'below_search',
+      home_category_flow: 'single_line',
       layout_enable_frosted_glass: false,
       layout_frosted_glass_intensity: '15',
       layout_grid_cols: '4',
@@ -97,13 +117,29 @@
       wallpaper_source: 'bing',
       wallpaper_cid_360: '36',
       layout_card_style: 'style1',
+      layout_card_animation: 'radial',
       layout_card_border_radius: '12',
       card_title_font: '',
-      card_title_size: '',
+      card_title_size: '16',
       card_title_color: '',
       card_desc_font: '',
-      card_desc_size: '',
+      card_desc_size: '14',
       card_desc_color: '',
+      mobile_layout_hide_desc: true,
+      mobile_layout_hide_links: true,
+      mobile_layout_hide_category: false,
+      mobile_layout_enable_frosted_glass: false,
+      mobile_layout_frosted_glass_intensity: '15',
+      mobile_layout_grid_cols: '3',
+      mobile_layout_card_style: 'style2',
+      mobile_layout_card_animation: 'radial',
+      mobile_layout_card_border_radius: '12',
+      mobile_card_title_font: '',
+      mobile_card_title_size: '13',
+      mobile_card_title_color: '',
+      mobile_card_desc_font: '',
+      mobile_card_desc_size: '11',
+      mobile_card_desc_color: '',
     };
   }
 
@@ -127,13 +163,13 @@
       hideDescSwitch: document.getElementById('hideDescSwitch'),
       hideLinksSwitch: document.getElementById('hideLinksSwitch'),
       hideCategorySwitch: document.getElementById('hideCategorySwitch'),
-      hideGithubSwitch: document.getElementById('hideGithubSwitch'),
       hideAdminSwitch: document.getElementById('hideAdminSwitch'),
       frostedGlassSwitch: document.getElementById('frostedGlassSwitch'),
       frostedGlassIntensityRange: document.getElementById('frostedGlassIntensity'),
       frostedGlassIntensityValue: document.getElementById('frostedGlassIntensityValue'),
       gridColsRadios: document.getElementsByName('gridCols'),
-      menuLayoutRadios: document.getElementsByName('menuLayout'),
+      categoryPositionRadios: document.getElementsByName('categoryPosition'),
+      categoryFlowRadios: document.getElementsByName('categoryFlow'),
       customWallpaperInput: document.getElementById('customWallpaperInput'),
       bgBlurSwitch: document.getElementById('bgBlurSwitch'),
       bgBlurIntensityRange: document.getElementById('bgBlurIntensity'),
@@ -163,6 +199,7 @@
       homeHitokotoFontInput: document.getElementById('homeHitokotoFont'),
       homeSiteNameInput: document.getElementById('homeSiteName'),
       homeSiteDescriptionInput: document.getElementById('homeSiteDescription'),
+      homeFooterTextInput: document.getElementById('homeFooterText'),
       homeDefaultCategorySelect: document.getElementById('homeDefaultCategory'),
       homeRememberLastCategorySwitch: document.getElementById('homeRememberLastCategorySwitch'),
       searchEngineSwitch: document.getElementById('searchEngineSwitch'),
@@ -172,10 +209,29 @@
       cardTitleSizeInput: document.getElementById('cardTitleSize'),
       cardTitleColorInput: document.getElementById('cardTitleColor'),
       cardTitleColorPicker: document.getElementById('cardTitleColorPicker'),
+      cardAnimationSelect: document.getElementById('cardAnimationSelect'),
       cardDescFontInput: document.getElementById('cardDescFont'),
       cardDescSizeInput: document.getElementById('cardDescSize'),
       cardDescColorInput: document.getElementById('cardDescColor'),
       cardDescColorPicker: document.getElementById('cardDescColorPicker'),
+      mobileHideDescSwitch: document.getElementById('mobileHideDescSwitch'),
+      mobileHideLinksSwitch: document.getElementById('mobileHideLinksSwitch'),
+      mobileHideCategorySwitch: document.getElementById('mobileHideCategorySwitch'),
+      mobileFrostedGlassSwitch: document.getElementById('mobileFrostedGlassSwitch'),
+      mobileFrostedGlassIntensityRange: document.getElementById('mobileFrostedGlassIntensity'),
+      mobileFrostedGlassIntensityValue: document.getElementById('mobileFrostedGlassIntensityValue'),
+      mobileGridColsRadios: document.getElementsByName('mobileGridCols'),
+      mobileCardAnimationSelect: document.getElementById('mobileCardAnimationSelect'),
+      mobileCardRadiusInput: document.getElementById('mobileCardRadius'),
+      mobileCardRadiusValue: document.getElementById('mobileCardRadiusValue'),
+      mobileCardTitleFontInput: document.getElementById('mobileCardTitleFont'),
+      mobileCardTitleSizeInput: document.getElementById('mobileCardTitleSize'),
+      mobileCardTitleColorInput: document.getElementById('mobileCardTitleColor'),
+      mobileCardTitleColorPicker: document.getElementById('mobileCardTitleColorPicker'),
+      mobileCardDescFontInput: document.getElementById('mobileCardDescFont'),
+      mobileCardDescSizeInput: document.getElementById('mobileCardDescSize'),
+      mobileCardDescColorInput: document.getElementById('mobileCardDescColor'),
+      mobileCardDescColorPicker: document.getElementById('mobileCardDescColorPicker'),
       bulkProgressView: document.getElementById('bulkGenerateProgress'),
     };
   }
@@ -214,6 +270,12 @@
     }
   }
 
+  function normalizeCategoryPosition(position, menuLayout) {
+    if (position === 'above_description') return 'top';
+    if (['below_search', 'above_search', 'left', 'top'].includes(position)) return position;
+    return menuLayout === 'vertical' ? 'left' : 'below_search';
+  }
+
   function updateToggleContainer(switchElement, containerId) {
     const container = document.getElementById(containerId);
     if (!container || !switchElement) return;
@@ -243,6 +305,35 @@
 
     if (serverSettings.bing_country !== undefined) {
       currentSettings.bing_country = serverSettings.bing_country;
+    }
+
+    if (serverSettings.home_category_position === undefined && serverSettings.layout_menu_layout === 'vertical') {
+      currentSettings.home_category_position = 'left';
+      currentSettings.layout_menu_layout = 'vertical';
+    } else {
+      const categoryPosition = normalizeCategoryPosition(currentSettings.home_category_position, currentSettings.layout_menu_layout);
+      currentSettings.home_category_position = categoryPosition;
+      currentSettings.layout_menu_layout = categoryPosition === 'left' ? 'vertical' : 'horizontal';
+    }
+
+    [
+      ['mobile_layout_hide_category', 'layout_hide_category'],
+      ['mobile_layout_enable_frosted_glass', 'layout_enable_frosted_glass'],
+      ['mobile_layout_frosted_glass_intensity', 'layout_frosted_glass_intensity'],
+      ['mobile_layout_card_animation', 'layout_card_animation'],
+      ['mobile_layout_card_border_radius', 'layout_card_border_radius'],
+      ['mobile_card_title_font', 'card_title_font'],
+      ['mobile_card_title_color', 'card_title_color'],
+      ['mobile_card_desc_font', 'card_desc_font'],
+      ['mobile_card_desc_color', 'card_desc_color'],
+    ].forEach(([mobileKey, desktopKey]) => {
+      if (serverSettings[mobileKey] === undefined) {
+        currentSettings[mobileKey] = currentSettings[desktopKey];
+      }
+    });
+
+    if (serverSettings.mobile_layout_grid_cols === undefined) {
+      currentSettings.mobile_layout_grid_cols = '3';
     }
   }
 
@@ -314,7 +405,6 @@
     currentSettings.layout_hide_desc = !!refs.hideDescSwitch?.checked;
     currentSettings.layout_hide_links = !!refs.hideLinksSwitch?.checked;
     currentSettings.layout_hide_category = !!refs.hideCategorySwitch?.checked;
-    currentSettings.home_hide_github = !!refs.hideGithubSwitch?.checked;
     currentSettings.home_hide_admin = !!refs.hideAdminSwitch?.checked;
     currentSettings.layout_hide_title = !!refs.hideTitleSwitch?.checked;
     currentSettings.home_title_size = refs.homeTitleSizeInput?.value.trim() || '';
@@ -334,6 +424,7 @@
     currentSettings.home_hitokoto_font = refs.homeHitokotoFontInput?.value.trim() || '';
     currentSettings.home_site_name = refs.homeSiteNameInput?.value.trim() || '';
     currentSettings.home_site_description = refs.homeSiteDescriptionInput?.value.trim() || '';
+    currentSettings.home_footer_text = refs.homeFooterTextInput?.value.trim() || '';
     currentSettings.home_default_category = refs.homeDefaultCategorySelect?.value || '';
     currentSettings.home_remember_last_category = !!refs.homeRememberLastCategorySwitch?.checked;
     currentSettings.home_search_engine_enabled = !!refs.searchEngineSwitch?.checked;
@@ -350,15 +441,27 @@
       }
     }
 
-    for (const radio of refs.menuLayoutRadios || []) {
+    let categoryPosition = normalizeCategoryPosition(currentSettings.home_category_position, currentSettings.layout_menu_layout);
+    for (const radio of refs.categoryPositionRadios || []) {
       if (radio.checked) {
-        currentSettings.layout_menu_layout = radio.value;
+        categoryPosition = radio.value;
+        break;
+      }
+    }
+    currentSettings.home_category_position = categoryPosition;
+    currentSettings.layout_menu_layout = categoryPosition === 'left' ? 'vertical' : 'horizontal';
+
+    for (const radio of refs.categoryFlowRadios || []) {
+      if (radio.checked) {
+        currentSettings.home_category_flow = radio.value;
         break;
       }
     }
 
     currentSettings.layout_enable_frosted_glass = !!refs.frostedGlassSwitch?.checked;
     currentSettings.layout_frosted_glass_intensity = refs.frostedGlassIntensityRange?.value || '15';
+    currentSettings.layout_card_style = document.getElementById('btnStyle2')?.classList.contains('active') ? 'style2' : 'style1';
+    currentSettings.layout_card_animation = refs.cardAnimationSelect?.value || 'radial';
     currentSettings.layout_card_border_radius = refs.cardRadiusInput?.value || '12';
     currentSettings.card_title_font = refs.cardTitleFontInput?.value.trim() || '';
     currentSettings.card_title_size = refs.cardTitleSizeInput?.value.trim() || '';
@@ -366,6 +469,27 @@
     currentSettings.card_desc_font = refs.cardDescFontInput?.value.trim() || '';
     currentSettings.card_desc_size = refs.cardDescSizeInput?.value.trim() || '';
     currentSettings.card_desc_color = refs.cardDescColorInput?.value.trim() || '';
+
+    currentSettings.mobile_layout_hide_desc = !!refs.mobileHideDescSwitch?.checked;
+    currentSettings.mobile_layout_hide_links = !!refs.mobileHideLinksSwitch?.checked;
+    currentSettings.mobile_layout_hide_category = !!refs.mobileHideCategorySwitch?.checked;
+    currentSettings.mobile_layout_enable_frosted_glass = !!refs.mobileFrostedGlassSwitch?.checked;
+    currentSettings.mobile_layout_frosted_glass_intensity = refs.mobileFrostedGlassIntensityRange?.value || '15';
+    for (const radio of refs.mobileGridColsRadios || []) {
+      if (radio.checked) {
+        currentSettings.mobile_layout_grid_cols = radio.value;
+        break;
+      }
+    }
+    currentSettings.mobile_layout_card_style = document.getElementById('mobileBtnStyle2')?.classList.contains('active') ? 'style2' : 'style1';
+    currentSettings.mobile_layout_card_animation = refs.mobileCardAnimationSelect?.value || 'radial';
+    currentSettings.mobile_layout_card_border_radius = refs.mobileCardRadiusInput?.value || '12';
+    currentSettings.mobile_card_title_font = refs.mobileCardTitleFontInput?.value.trim() || '';
+    currentSettings.mobile_card_title_size = refs.mobileCardTitleSizeInput?.value.trim() || '';
+    currentSettings.mobile_card_title_color = refs.mobileCardTitleColorInput?.value.trim() || '';
+    currentSettings.mobile_card_desc_font = refs.mobileCardDescFontInput?.value.trim() || '';
+    currentSettings.mobile_card_desc_size = refs.mobileCardDescSizeInput?.value.trim() || '';
+    currentSettings.mobile_card_desc_color = refs.mobileCardDescColorInput?.value.trim() || '';
   }
 
   async function saveSettings() {
@@ -446,7 +570,6 @@
     setChecked(refs.hideDescSwitch, currentSettings.layout_hide_desc);
     setChecked(refs.hideLinksSwitch, currentSettings.layout_hide_links);
     setChecked(refs.hideCategorySwitch, currentSettings.layout_hide_category);
-    setChecked(refs.hideGithubSwitch, currentSettings.home_hide_github);
     setChecked(refs.hideAdminSwitch, currentSettings.home_hide_admin);
     setChecked(refs.hideTitleSwitch, currentSettings.layout_hide_title);
     setValue(refs.homeTitleSizeInput, currentSettings.home_title_size || '36');
@@ -466,6 +589,7 @@
     setValue(refs.homeHitokotoFontInput, currentSettings.home_hitokoto_font || '');
     setValue(refs.homeSiteNameInput, currentSettings.home_site_name || '');
     setValue(refs.homeSiteDescriptionInput, currentSettings.home_site_description || '');
+    setValue(refs.homeFooterTextInput, currentSettings.home_footer_text || '');
     setValue(refs.homeDefaultCategorySelect, currentSettings.home_default_category || '');
     setChecked(refs.homeRememberLastCategorySwitch, currentSettings.home_remember_last_category);
     setChecked(refs.searchEngineSwitch, currentSettings.home_search_engine_enabled);
@@ -478,7 +602,13 @@
     updateToggleContainer(refs.bgBlurSwitch, 'bgBlurIntensityContainer');
     setValue(refs.bingCountrySelect, currentSettings.bing_country || '');
     setRadioValue(refs.gridColsRadios, currentSettings.layout_grid_cols);
-    setRadioValue(refs.menuLayoutRadios, currentSettings.layout_menu_layout);
+    const categoryPosition = normalizeCategoryPosition(currentSettings.home_category_position, currentSettings.layout_menu_layout);
+    currentSettings.home_category_position = categoryPosition;
+    currentSettings.layout_menu_layout = categoryPosition === 'left' ? 'vertical' : 'horizontal';
+    setRadioValue(refs.categoryPositionRadios, categoryPosition);
+    setRadioValue(refs.categoryFlowRadios, currentSettings.home_category_flow || 'single_line');
+    setValue(refs.cardAnimationSelect, currentSettings.layout_card_animation || 'radial');
+    ns.preview?.syncAnimationOptions?.();
     setRangeValue(refs.cardRadiusInput, refs.cardRadiusValue, currentSettings.layout_card_border_radius || '12');
     setValue(refs.cardTitleFontInput, currentSettings.card_title_font || '');
     setValue(refs.cardTitleSizeInput, currentSettings.card_title_size || '16');
@@ -486,6 +616,21 @@
     setValue(refs.cardDescFontInput, currentSettings.card_desc_font || '');
     setValue(refs.cardDescSizeInput, currentSettings.card_desc_size || '14');
     setColorInputs(refs.cardDescColorInput, refs.cardDescColorPicker, currentSettings.card_desc_color || '');
+    setChecked(refs.mobileHideDescSwitch, currentSettings.mobile_layout_hide_desc);
+    setChecked(refs.mobileHideLinksSwitch, currentSettings.mobile_layout_hide_links);
+    setChecked(refs.mobileHideCategorySwitch, currentSettings.mobile_layout_hide_category);
+    setChecked(refs.mobileFrostedGlassSwitch, currentSettings.mobile_layout_enable_frosted_glass);
+    setRangeValue(refs.mobileFrostedGlassIntensityRange, refs.mobileFrostedGlassIntensityValue, currentSettings.mobile_layout_frosted_glass_intensity || '15');
+    updateToggleContainer(refs.mobileFrostedGlassSwitch, 'mobileFrostedGlassIntensityContainer');
+    setRadioValue(refs.mobileGridColsRadios, currentSettings.mobile_layout_grid_cols || '3');
+    setValue(refs.mobileCardAnimationSelect, currentSettings.mobile_layout_card_animation || 'radial');
+    setRangeValue(refs.mobileCardRadiusInput, refs.mobileCardRadiusValue, currentSettings.mobile_layout_card_border_radius || '12');
+    setValue(refs.mobileCardTitleFontInput, currentSettings.mobile_card_title_font || '');
+    setValue(refs.mobileCardTitleSizeInput, currentSettings.mobile_card_title_size || '13');
+    setColorInputs(refs.mobileCardTitleColorInput, refs.mobileCardTitleColorPicker, currentSettings.mobile_card_title_color || '#111827');
+    setValue(refs.mobileCardDescFontInput, currentSettings.mobile_card_desc_font || '');
+    setValue(refs.mobileCardDescSizeInput, currentSettings.mobile_card_desc_size || '11');
+    setColorInputs(refs.mobileCardDescColorInput, refs.mobileCardDescColorPicker, currentSettings.mobile_card_desc_color || '');
 
     [
       currentSettings.home_title_font,
@@ -494,9 +639,12 @@
       currentSettings.home_hitokoto_font,
       currentSettings.card_title_font,
       currentSettings.card_desc_font,
+      currentSettings.mobile_card_title_font,
+      currentSettings.mobile_card_desc_font,
     ].forEach(font => ns.preview?.loadFont?.(font));
 
     ns.preview?.selectCardStyle?.(currentSettings.layout_card_style || 'style1');
+    ns.preview?.selectMobileCardStyle?.(currentSettings.mobile_layout_card_style || 'style2');
     ns.preview?.updatePreviewCards?.();
     ns.preview?.updatePreviewWidth?.();
   }
@@ -518,6 +666,7 @@
       loadSettings();
       refs.settingsModal.style.display = 'block';
       document.body.classList.add('modal-open');
+      ns.preview?.scheduleFullPreviewRender?.();
     });
 
     refs.closeBtn?.addEventListener('click', closeModal);
@@ -539,6 +688,7 @@
           content.classList.remove('active');
           if (content.id === tabId) content.classList.add('active');
         });
+        ns.preview?.scheduleFullPreviewRender?.();
 
         const shouldLoadWallpaper = tabId === 'wallpaper-settings'
           && refs.onlineWallpapersDiv
@@ -546,6 +696,40 @@
         if (shouldLoadWallpaper) {
           ns.wallpaper?.switchWallpaperSource?.(currentSettings.wallpaper_source || 'bing');
         }
+      });
+    });
+  }
+
+  function initCardDeviceTabs() {
+    const buttons = document.querySelectorAll('[data-card-device-tab]');
+    const panels = document.querySelectorAll('[data-card-device-panel]');
+    if (!buttons.length || !panels.length) return;
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const target = button.dataset.cardDeviceTab || 'desktop';
+
+        buttons.forEach(item => {
+          const isActive = item === button;
+          item.classList.toggle('active', isActive);
+          item.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        panels.forEach(panel => {
+          panel.classList.toggle('hidden', panel.dataset.cardDevicePanel !== target);
+        });
+
+        const previewRoot = document.getElementById('homeLivePreview');
+        if (previewRoot) {
+          previewRoot.dataset.device = target === 'mobile' ? 'mobile' : 'desktop';
+          if (previewRoot.dataset.device !== 'mobile') previewRoot.classList.remove('mobile-menu-open');
+        }
+        document.querySelectorAll('.preview-device-btn').forEach(deviceBtn => {
+          const isActive = deviceBtn.dataset.previewDevice === (target === 'mobile' ? 'mobile' : 'desktop');
+          deviceBtn.classList.toggle('active', isActive);
+        });
+
+        ns.preview?.scheduleFullPreviewRender?.();
       });
     });
   }
@@ -580,6 +764,16 @@
         refs.bgBlurIntensityValue.textContent = refs.bgBlurIntensityRange.value;
       }
     });
+
+    refs.mobileFrostedGlassSwitch?.addEventListener('change', () => {
+      updateToggleContainer(refs.mobileFrostedGlassSwitch, 'mobileFrostedGlassIntensityContainer');
+    });
+
+    refs.mobileFrostedGlassIntensityRange?.addEventListener('input', () => {
+      if (refs.mobileFrostedGlassIntensityValue) {
+        refs.mobileFrostedGlassIntensityValue.textContent = refs.mobileFrostedGlassIntensityRange.value;
+      }
+    });
   }
 
   function init() {
@@ -587,6 +781,7 @@
     if (!refs.settingsBtn || !refs.settingsModal) return false;
     initModalEvents(refs);
     initTabEvents(refs);
+    initCardDeviceTabs();
     initFormEvents(refs);
     return true;
   }

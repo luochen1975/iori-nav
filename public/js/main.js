@@ -24,13 +24,14 @@ document.addEventListener('DOMContentLoaded', function () {
   // 为初始 SSR 渲染的卡片设置动画延迟（已从服务端移至前端）
   const initialCards = document.querySelectorAll('.site-card.card-anim-enter');
   const sitesGrid = document.getElementById('sitesGrid');
-  const cardConfig = window.IORI_CARD_CONFIG || {
+  const defaultCardConfig = {
     hideDesc: false,
     hideLinks: false,
     hideCategory: false,
     hideCopyText: false,
     enableFrostedGlass: false,
     cardStyle: 'style1',
+    cardAnimation: 'radial',
     gridCols: '4',
     aboveFoldImageCount: 8,
     baseCardClass: 'site-card group h-full flex flex-col bg-white border border-primary-100/60 shadow-sm overflow-hidden dark:bg-gray-800 dark:border-gray-700',
@@ -38,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
     cardStyleClass: '',
     titleClass: 'site-title text-base font-medium text-gray-900 dark:text-gray-100 truncate transition-all duration-300 origin-left',
     descClass: 'mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-2',
-    categoryClass: 'inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-secondary-100 text-primary-700 dark:bg-secondary-800 dark:text-primary-300',
+    categoryClass: 'site-category inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-secondary-100 text-primary-700 dark:bg-secondary-800 dark:text-primary-300',
     linkRowClass: 'mt-3 flex items-center justify-between',
     urlTextClass: 'text-xs text-primary-600 dark:text-primary-400 truncate flex-1 min-w-0 mr-2',
     copyButtonBaseClass: 'copy-btn relative flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors',
@@ -47,16 +48,211 @@ document.addEventListener('DOMContentLoaded', function () {
     logoClass: 'w-10 h-10 rounded-lg object-cover bg-gray-100 dark:bg-gray-700',
     siteIconClass: 'site-icon flex-shrink-0 mr-4 transition-all duration-300',
   };
+  const cardConfigSets = window.IORI_CARD_CONFIGS || {
+    desktop: window.IORI_CARD_CONFIG || defaultCardConfig,
+    mobile: window.IORI_CARD_CONFIG || defaultCardConfig,
+  };
+  const cardAnimationTypes = ['slideUp', 'radial', 'fadeIn', 'slideLeft', 'slideRight', 'convergeIn', 'flipIn'];
+  const cardAnimationClasses = cardAnimationTypes.map(type => `card-anim-${type}`);
+  const reducedMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const mobileCardQuery = window.matchMedia?.('(max-width: 767px)');
+  let activeCardDevice = '';
+  let cardConfig = getActiveCardConfig();
+  let activeRenderedCatalogId = window.IORI_LAYOUT_CONFIG?.ssrCatalogId && window.IORI_LAYOUT_CONFIG.ssrCatalogId !== 'all'
+    ? String(window.IORI_LAYOUT_CONFIG.ssrCatalogId)
+    : null;
 
-  initialCards.forEach((card, index) => {
-    const delay = Math.min(index, 12) * 20;
-    if (delay > 0) card.style.animationDelay = `${delay}ms`;
-    card.addEventListener('animationend', () => {
-      card.classList.remove('card-anim-enter');
-      if (card.style.animationDelay) {
-        card.style.removeProperty('animation-delay');
-      }
-    }, { once: true });
+  function getCardDevice() {
+    return mobileCardQuery?.matches ? 'mobile' : 'desktop';
+  }
+
+  function getActiveCardConfig() {
+    const device = getCardDevice();
+    activeCardDevice = device;
+    return cardConfigSets[device] || cardConfigSets.desktop || window.IORI_CARD_CONFIG || defaultCardConfig;
+  }
+
+  function getSitesForCatalog(catalogId) {
+    const allSites = window.IORI_SITES || [];
+    if (!catalogId) return allSites;
+    return allSites.filter(site => String(site.catelog_id) === String(catalogId));
+  }
+
+  function applyCardGridColumns() {
+    if (!sitesGrid || getCardDevice() !== 'mobile') return;
+    const cols = String(cardConfig.gridCols || '2');
+    const mobileGridClass = cols === '1' ? 'grid-cols-1' : (cols === '3' ? 'grid-cols-3' : 'grid-cols-2');
+    sitesGrid.classList.remove('grid-cols-1', 'grid-cols-2', 'grid-cols-3');
+    sitesGrid.classList.add(mobileGridClass);
+  }
+
+  function syncCardConfigForViewport(options = {}) {
+    const device = getCardDevice();
+    const nextConfig = cardConfigSets[device] || cardConfigSets.desktop || defaultCardConfig;
+    if (!options.force && device === activeCardDevice && nextConfig === cardConfig) return;
+
+    activeCardDevice = device;
+    cardConfig = nextConfig;
+    applyCardGridColumns();
+    renderSites(getSitesForCatalog(activeRenderedCatalogId));
+    reapplyLocalSearchFilter();
+  }
+
+  function prefersReducedCardMotion() {
+    return reducedMotionQuery?.matches === true;
+  }
+
+  function resolveCardAnimationName() {
+    const configured = cardConfig.cardAnimation || window.IORI_LAYOUT_CONFIG?.cardAnimation || 'radial';
+    if (configured === 'random') {
+      return cardAnimationTypes[Math.floor(Math.random() * cardAnimationTypes.length)];
+    }
+    return cardAnimationTypes.includes(configured) ? configured : 'radial';
+  }
+
+  function getAnimationColumnCount() {
+    const templateColumns = sitesGrid ? window.getComputedStyle(sitesGrid).gridTemplateColumns : '';
+    if (templateColumns && templateColumns !== 'none') {
+      const renderedCols = templateColumns.trim().split(/\s+/).filter(Boolean).length;
+      if (renderedCols > 0) return renderedCols;
+    }
+
+    const configuredCols = String(cardConfig.gridCols || window.IORI_LAYOUT_CONFIG?.gridCols || (getCardDevice() === 'mobile' ? '2' : '4'));
+    const width = window.innerWidth;
+    if (width < 768) {
+      const mobileCols = Number(configuredCols);
+      return Number.isFinite(mobileCols) && mobileCols > 0 ? mobileCols : 2;
+    }
+    if (width < 1024) return 3;
+
+    if (getCardDevice() === 'mobile') {
+      const mobileCols = Number(configuredCols);
+      return Number.isFinite(mobileCols) && mobileCols > 0 ? mobileCols : 2;
+    }
+    if (configuredCols === '6') return width >= 1200 ? 6 : 5;
+    if (configuredCols === '7') return width >= 1280 ? 7 : 5;
+
+    const cols = Number(configuredCols);
+    return Number.isFinite(cols) && cols > 0 ? cols : 4;
+  }
+
+  function getCardAnimationDelay(index, animationType) {
+    const cols = getAnimationColumnCount();
+    const row = Math.floor(index / cols);
+    const col = index % cols;
+    const centerCol = (cols - 1) / 2;
+    let delay = 0;
+
+    if (animationType === 'radial') {
+      delay = (Math.abs(col - centerCol) + row) * 80;
+    } else if (animationType === 'fadeIn') {
+      delay = Math.random() * 500;
+    } else if (animationType === 'slideLeft') {
+      delay = row * 100;
+    } else if (animationType === 'slideRight') {
+      delay = (row + (cols - col - 1) * 0.02) * 80;
+    } else if (animationType === 'convergeIn') {
+      const maxDistance = Math.max(centerCol, cols - centerCol - 1);
+      delay = (maxDistance - Math.abs(col - centerCol)) * 80;
+    } else if (animationType === 'flipIn') {
+      delay = (row + col) * 60;
+    } else {
+      delay = index * 50;
+    }
+
+    return Math.min(delay, 1000);
+  }
+
+  function prepareCardAnimation(card, index, animationType) {
+    const cols = getAnimationColumnCount();
+    const col = index % cols;
+    const centerCol = (cols - 1) / 2;
+
+    cardAnimationClasses.forEach(className => card.classList.remove(className));
+    card.classList.remove('card-anim-flip-settle', 'card-anim-flip-settle-fade');
+    card.style.removeProperty('--card-anim-x');
+    card.style.removeProperty('--card-anim-y');
+
+    if (animationType === 'convergeIn') {
+      const offset = col - centerCol;
+      const distance = Math.abs(offset);
+      const isCenter = distance <= 0.5;
+      const x = isCenter ? 0 : Math.sign(offset) * Math.min(80, 28 + distance * 22);
+      const y = isCenter ? -30 : 0;
+      card.style.setProperty('--card-anim-x', `${x}px`);
+      card.style.setProperty('--card-anim-y', `${y}px`);
+    }
+
+    card.classList.add(`card-anim-${animationType}`);
+
+    const delay = getCardAnimationDelay(index, animationType);
+    if (delay > 0) {
+      card.style.animationDelay = `${delay}ms`;
+    } else {
+      card.style.removeProperty('animation-delay');
+    }
+  }
+
+  function cleanupCardAnimation(card) {
+    const wasFlipIn = card.classList.contains('card-anim-flipIn');
+    card.classList.add('card-anim-cleanup');
+    if (wasFlipIn) {
+      card.classList.add('card-anim-flip-settle');
+    }
+    card.classList.remove('card-anim-enter');
+    cardAnimationClasses.forEach(className => card.classList.remove(className));
+    card.style.removeProperty('--card-anim-x');
+    card.style.removeProperty('--card-anim-y');
+    card.style.removeProperty('animation-delay');
+    window.requestAnimationFrame(() => {
+      card.classList.remove('card-anim-cleanup');
+      if (!wasFlipIn) return;
+      card.classList.add('card-anim-flip-settle-fade');
+      window.setTimeout(() => {
+        card.classList.remove('card-anim-flip-settle', 'card-anim-flip-settle-fade');
+      }, 160);
+    });
+  }
+
+  function bindCardAnimationCleanup(card) {
+    if (prefersReducedCardMotion()) {
+      cleanupCardAnimation(card);
+      return;
+    }
+
+    let isCleaned = false;
+    let fallbackTimer = null;
+
+    const cleanup = () => {
+      if (isCleaned) return;
+      isCleaned = true;
+      cleanupCardAnimation(card);
+      card.removeEventListener('animationend', handleAnimationEnd);
+      if (fallbackTimer) window.clearTimeout(fallbackTimer);
+    };
+
+    const handleAnimationEnd = (event) => {
+      if (event.target !== card) return;
+      cleanup();
+    };
+
+    const delayMs = Number.parseFloat(card.style.animationDelay) || 0;
+    fallbackTimer = window.setTimeout(cleanup, delayMs + 900);
+    card.addEventListener('animationend', handleAnimationEnd);
+  }
+
+  function animateCardBatch(cards) {
+    const animationType = resolveCardAnimationName();
+    cards.forEach((card, index) => prepareCardAnimation(card, index, animationType));
+  }
+
+  animateCardBatch(initialCards);
+  initialCards.forEach((card) => {
+    bindCardAnimationCleanup(card);
+  });
+
+  mobileCardQuery?.addEventListener('change', () => {
+    syncCardConfigForViewport();
   });
 
   // ========== 复制链接功能 ==========
@@ -314,6 +510,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let searchDebounceTimer = null;
 
+  function getCurrentLocalSearchKeyword() {
+    if (currentSearchEngine !== 'local') return '';
+    for (const input of searchInputs) {
+      const keyword = input.value.trim();
+      if (keyword) return keyword;
+    }
+    return '';
+  }
+
+  function applyLocalSearchFilter(keyword) {
+    const normalizedKeyword = String(keyword || '').toLowerCase().trim();
+    const cached = getSearchCardCache();
+
+    cached.forEach(({ el, text }) => {
+      if (normalizedKeyword === '' || text.includes(normalizedKeyword)) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    });
+
+    updateHeading(normalizedKeyword);
+  }
+
+  function reapplyLocalSearchFilter() {
+    applyLocalSearchFilter(getCurrentLocalSearchKeyword());
+  }
+
   // Initialize Search Engine UI based on saved preference
   const engineOptions = document.querySelectorAll('.search-engine-option');
 
@@ -387,18 +611,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(() => {
-        const keyword = value.toLowerCase().trim();
-        const cached = getSearchCardCache();
-
-        cached.forEach(({ el, text }) => {
-          if (keyword === '' || text.includes(keyword)) {
-            el.classList.remove('hidden');
-          } else {
-            el.classList.add('hidden');
-          }
-        });
-
-        updateHeading(keyword);
+        applyLocalSearchFilter(value);
       }, 200);
     });
 
@@ -662,6 +875,7 @@ document.addEventListener('DOMContentLoaded', function () {
         filteredSites = allSites;
       }
 
+      activeRenderedCatalogId = catalogId ? String(catalogId) : null;
       renderSites(filteredSites);
       updateHeading(null, catalogId ? catalogName : null, filteredSites.length);
       updateNavigationState(catalogId);
@@ -698,6 +912,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const sitesGrid = document.getElementById('sitesGrid');
     if (!sitesGrid) return;
 
+    applyCardGridColumns();
+
     // 重新渲染时清除搜索缓存
     searchCardCache = null;
 
@@ -707,6 +923,8 @@ document.addEventListener('DOMContentLoaded', function () {
       sitesGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">本分类下暂无书签</div>';
       return;
     }
+
+    const animationType = resolveCardAnimationName();
 
     sites.forEach((site, index) => {
       const isAboveFold = index < (cardConfig.aboveFoldImageCount || 8);
@@ -734,17 +952,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const card = document.createElement('div');
       card.className = `${cardConfig.baseCardClass} ${cardConfig.frostedClass} ${cardConfig.cardStyleClass} card-anim-enter`;
-      const delay = Math.min(index, 12) * 20;
-      if (delay > 0) {
-        card.style.animationDelay = `${delay}ms`;
-      }
-
-      // Remove animation class after completion to ensure clean state
-      card.addEventListener('animationend', () => {
-        card.classList.remove('card-anim-enter');
-        card.style.animation = 'none'; // 彻底禁用动画，防止干扰 Hover
-        if (delay > 0) card.style.removeProperty('animation-delay');
-      }, { once: true });
+      prepareCardAnimation(card, index, animationType);
+      bindCardAnimationCleanup(card);
 
       card.setAttribute('data-id', site.id);
 
@@ -768,6 +977,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
       sitesGrid.appendChild(card);
     });
+  }
+
+  if (getCardDevice() === 'mobile') {
+    syncCardConfigForViewport({ force: true });
   }
 
   function updateNavigationState(catalogId) {
@@ -890,6 +1103,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (lastId === 'all') {
           // Explicitly restore "All Categories" state
           const allSites = window.IORI_SITES || [];
+          activeRenderedCatalogId = null;
           renderSites(allSites);
           updateHeading(null, null, allSites.length);
           updateNavigationState(null);
@@ -910,6 +1124,7 @@ document.addEventListener('DOMContentLoaded', function () {
           const allSites = window.IORI_SITES || [];
           const filteredSites = allSites.filter(site => String(site.catelog_id) === String(lastId));
 
+          activeRenderedCatalogId = String(lastId);
           renderSites(filteredSites);
           updateHeading(null, catalogName, filteredSites.length);
           updateNavigationState(lastId);
